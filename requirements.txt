@@ -1,0 +1,39 @@
+# Web Framework
+fastapi==0.104.1
+uvicorn[standard]==0.24.0
+websockets==12.0
+
+# Exchange Integration
+ccxt==4.1.50
+
+# Database
+psycopg2-binary==2.9.9
+sqlalchemy==2.0.23
+alembic==1.12.1
+
+# Cache
+redis==5.0.1
+
+# Data Processing
+pandas==2.1.3
+numpy==1.26.2
+
+# Technical Analysis
+TA-Lib==0.4.28
+
+# HTTP Client
+aiohttp==3.9.1
+requests==2.31.0
+
+# Environment
+python-dotenv==1.0.0
+
+# Testing
+pytest==7.4.3
+pytest-asyncio==0.21.1
+pytest-cov==4.1.0
+httpx==0.25.2
+
+# Code Quality
+black==23.11.0
+pylint==3.0.2
