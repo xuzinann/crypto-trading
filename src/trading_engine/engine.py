@@ -23,7 +23,7 @@ class TradingEngine:
         position_tracker: PositionTracker,
         strategy_coordinator: StrategyCoordinator,
         db_session: Session,
-        symbol: str = 'BTC/USD',
+        symbol: str = 'BTC/USDT',  # OKX primary pair (BTC/USD also available)
         poll_interval: int = 300
     ):
         self.risk_manager = risk_manager

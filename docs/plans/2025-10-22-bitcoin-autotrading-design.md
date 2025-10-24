@@ -2,12 +2,12 @@
 
 **Date:** October 22, 2025
 **Status:** Design Approved
-**Platform:** Binance US
+**Platform:** OKX
 **Deployment:** Cost-effective VPS ($17-22/month)
 
 ## Executive Summary
 
-An automated Bitcoin trading system that combines DeepSeek AI analysis, technical indicators, and news monitoring to execute trades on Binance US. Features a mobile-friendly web dashboard for real-time monitoring, comprehensive risk management, and a swappable/extensible AI strategy architecture for continuous improvement.
+An automated Bitcoin trading system that combines DeepSeek AI analysis, technical indicators, and news monitoring to execute trades on OKX. Features a mobile-friendly web dashboard for real-time monitoring, comprehensive risk management, and a swappable/extensible AI strategy architecture for continuous improvement.
 
 ## Requirements Summary
 
@@ -34,7 +34,7 @@ An automated Bitcoin trading system that combines DeepSeek AI analysis, technica
 - **Hosting**: Cloud VPS (DigitalOcean/Vultr, $6-12/month recommended)
 - **Backtesting**: Required before live trading
 - **Paper trading**: Test with real-time data, fake money
-- **API setup**: Binance US API keys (to be configured)
+- **API setup**: OKX API keys (to be configured)
 
 ## Architecture Overview
 
@@ -73,7 +73,7 @@ An automated Bitcoin trading system that combines DeepSeek AI analysis, technica
 ### 1. Trading Engine (Python/FastAPI)
 
 **Responsibilities:**
-- Execute trades via Binance US API
+- Execute trades via OKX API
 - Enforce risk management rules
 - Track positions and calculate real-time P&L
 - Coordinate with AI Strategy Service for trading signals
@@ -88,10 +88,10 @@ An automated Bitcoin trading system that combines DeepSeek AI analysis, technica
 - Position limit enforcement: prevents over-leveraging
 
 **Order Executor**
-- Places market/limit orders via Binance US REST API
+- Places market/limit orders via OKX REST API
 - Handles order confirmations and errors
 - Automatic stop-loss placement on all positions
-- Rate limiting to comply with Binance API limits
+- Rate limiting to comply with OKX API limits
 
 **Position Tracker**
 - Maintains list of open positions
@@ -108,7 +108,7 @@ An automated Bitcoin trading system that combines DeepSeek AI analysis, technica
 **Technology:**
 - Language: Python 3.11+
 - Framework: FastAPI (async performance)
-- Exchange Integration: CCXT library (Binance US support)
+- Exchange Integration: CCXT library (OKX support)
 - WebSocket: FastAPI WebSocket for dashboard updates
 
 ### 2. AI Strategy Service (Python with DeepSeek)
@@ -207,7 +207,7 @@ class BaseStrategy:
 
 **Tab 1: Live Positions**
 - Real-time position cards showing:
-  - Symbol (BTC/USD), Entry Price, Current Price
+  - Symbol (BTC/USDT), Entry Price, Current Price
   - P&L (dollar amount and percentage)
   - Duration, Stop-Loss Level
 - Tap to expand: full details + manual close button
@@ -301,7 +301,7 @@ class BaseStrategy:
 **Features:**
 
 **Historical Data Management:**
-- Download Bitcoin OHLCV data from Binance (1-minute candles)
+- Download Bitcoin OHLCV data from OKX (1-minute candles)
 - Store 2+ years of historical data
 - Periodic updates to keep data current
 
@@ -373,7 +373,7 @@ if available_balance < trade_amount:
   - Require manual review and restart via dashboard admin panel
 
 ### Connection Loss Handling
-- Monitor Binance API connection health
+- Monitor OKX API connection health
 - Heartbeat check every 30 seconds
 - If connection lost:
   - Stop opening new positions
@@ -391,7 +391,7 @@ if available_balance < trade_amount:
 ### Safety Features
 - All trades logged with full context (timestamp, reasoning, market conditions)
 - API keys stored in encrypted environment variables (never in code)
-- Rate limiting: respect Binance API limits (avoid bans)
+- Rate limiting: respect OKX API limits (avoid bans)
 - Dry-run mode: test without real execution
 - Manual override: pause bot instantly via dashboard
 
@@ -400,7 +400,7 @@ if available_balance < trade_amount:
 ### Backend
 - **Language:** Python 3.11+
 - **Web Framework:** FastAPI (async, high performance)
-- **Exchange Integration:** CCXT library (Binance US support)
+- **Exchange Integration:** CCXT library (OKX support)
 - **AI Integration:** DeepSeek API (market analysis)
 - **Database:** PostgreSQL 15 (trade history, logs)
 - **Cache:** Redis (rate limiting, session management)
@@ -448,7 +448,7 @@ if available_balance < trade_amount:
 **Prerequisites:**
 1. VPS provisioned with Ubuntu 22.04
 2. Domain name pointed to VPS (for SSL)
-3. Binance US account with API keys
+3. OKX account with API keys
 4. DeepSeek API key
 
 **Deployment Steps:**
@@ -515,7 +515,7 @@ cp .env.example .env
 ## Development Timeline
 
 ### Phase 1: Core Trading Engine (2-3 weeks)
-- Binance US API integration
+- OKX API integration
 - Order execution and position tracking
 - Risk management implementation
 - Database schema and models

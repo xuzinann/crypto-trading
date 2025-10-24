@@ -7,7 +7,7 @@ logger = logging.getLogger(__name__)
 
 
 class OrderExecutor:
-    """Executes orders on Binance US exchange"""
+    """Executes orders on configured exchange (OKX, Binance, etc.)"""
 
     def __init__(self, exchange: ccxt.Exchange, paper_trading: bool = True):
         self.exchange = exchange
@@ -19,7 +19,7 @@ class OrderExecutor:
         Place a market buy order
 
         Args:
-            symbol: Trading pair (e.g., 'BTC/USD')
+            symbol: Trading pair (e.g., 'BTC/USDT')
             amount: Amount to buy in base currency
 
         Returns:
@@ -41,7 +41,7 @@ class OrderExecutor:
         Place a market sell order
 
         Args:
-            symbol: Trading pair (e.g., 'BTC/USD')
+            symbol: Trading pair (e.g., 'BTC/USDT')
             amount: Amount to sell in base currency
 
         Returns:
@@ -62,13 +62,19 @@ class OrderExecutor:
         """
         Place a stop-loss order
 
+        Works with multiple exchanges via CCXT unified API.
+        OKX uses 'stop_market' type, Binance uses 'stop_loss'.
+
         Args:
-            symbol: Trading pair
-            amount: Position size
+            symbol: Trading pair (e.g., 'BTC/USDT')
+            amount: Position size in base currency
             stop_price: Price to trigger stop loss
 
         Returns:
             Order details dictionary
+
+        Raises:
+            Exception: If order placement fails
         """
         if self.paper_trading:
             return {
@@ -81,18 +87,45 @@ class OrderExecutor:
             }
 
         try:
-            # Binance US stop-loss market order
-            order = self.exchange.create_order(
-                symbol=symbol,
-                type='stop_loss',
-                side='sell',
-                amount=amount,
-                params={'stopPrice': stop_price}
-            )
-            logger.info(f"Stop-loss placed: {order['id']}")
+            # Determine order type based on exchange
+            exchange_id = self.exchange.id.lower()
+
+            if exchange_id == 'okx':
+                # OKX stop-loss order format
+                order = self.exchange.create_order(
+                    symbol=symbol,
+                    type='market',  # OKX uses market type with trigger price
+                    side='sell',
+                    amount=amount,
+                    params={
+                        'stopLossPrice': stop_price,  # OKX parameter name
+                        'tdMode': 'cash'  # Trade mode: cash (spot)
+                    }
+                )
+            elif exchange_id in ['binance', 'binanceus']:
+                # Binance stop-loss order format
+                order = self.exchange.create_order(
+                    symbol=symbol,
+                    type='stop_loss',
+                    side='sell',
+                    amount=amount,
+                    params={'stopPrice': stop_price}
+                )
+            else:
+                # Generic CCXT unified API (fallback)
+                order = self.exchange.create_order(
+                    symbol=symbol,
+                    type='stop',
+                    side='sell',
+                    amount=amount,
+                    price=stop_price
+                )
+
+            logger.info(f"Stop-loss placed on {exchange_id}: {order['id']}")
             return order
+
         except Exception as e:
-            logger.error(f"Error placing stop-loss: {e}")
+            logger.error(f"Error placing stop-loss on {self.exchange.id}: {e}")
             raise
 
     def _simulate_order(self, symbol: str, amount: float, side: str) -> Dict:
