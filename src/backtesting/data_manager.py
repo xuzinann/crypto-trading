@@ -1,7 +1,8 @@
 from datetime import datetime, timedelta
-from typing import List, Tuple
+from typing import List, Tuple, Dict
 from sqlalchemy.orm import Session
 from src.database.models.historical_price import HistoricalPrice
+from src.common.exchange_config import get_exchange
 
 
 class DataManager:
@@ -38,6 +39,62 @@ class DataManager:
             HistoricalPrice.timestamp <= end,
             HistoricalPrice.timeframe == timeframe
         ).order_by(HistoricalPrice.timestamp).all()
+
+    def fetch_from_api(
+        self,
+        symbol: str,
+        start: datetime,
+        end: datetime,
+        timeframe: str
+    ) -> List[Dict]:
+        """
+        Fetch historical data from exchange API
+
+        Args:
+            symbol: Trading pair symbol
+            start: Start datetime
+            end: End datetime
+            timeframe: Time granularity
+
+        Returns:
+            List of OHLCV dictionaries
+        """
+        exchange = get_exchange(exchange_name='okx', testnet=False)
+
+        # Convert timeframe to CCXT format
+        timeframe_map = {
+            '1h': '1h',
+            '4h': '4h',
+            '1d': '1d'
+        }
+        ccxt_timeframe = timeframe_map.get(timeframe, '1h')
+
+        # Fetch OHLCV data
+        since = int(start.timestamp() * 1000)  # CCXT expects milliseconds
+        ohlcv_list = exchange.fetch_ohlcv(
+            symbol=symbol,
+            timeframe=ccxt_timeframe,
+            since=since
+        )
+
+        # Convert to dictionary format
+        result = []
+        for ohlcv in ohlcv_list:
+            timestamp_ms, open_price, high, low, close, volume = ohlcv
+            data_timestamp = datetime.fromtimestamp(timestamp_ms / 1000)
+
+            # Only include data within requested range
+            if start <= data_timestamp <= end:
+                result.append({
+                    'timestamp': data_timestamp,
+                    'open': open_price,
+                    'high': high,
+                    'low': low,
+                    'close': close,
+                    'volume': volume
+                })
+
+        return result
 
     def detect_missing_ranges(
         self,
