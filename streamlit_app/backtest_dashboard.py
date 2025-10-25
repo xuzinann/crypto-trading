@@ -2,6 +2,8 @@ import streamlit as st
 from datetime import datetime, timedelta
 import pandas as pd
 import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
 from sqlalchemy.orm import Session
 from src.database.connection import get_db
 from src.backtesting.data_manager import DataManager
@@ -205,13 +207,70 @@ if run_button:
                 else:
                     st.info("No trades executed")
 
+                # Price chart with trade markers
+                st.subheader("Price Chart with Trade Markers")
+
+                # Create candlestick chart
+                fig = make_subplots(rows=1, cols=1)
+
+                # Add candlestick
+                fig.add_trace(go.Candlestick(
+                    x=df['timestamp'],
+                    open=df['open'],
+                    high=df['high'],
+                    low=df['low'],
+                    close=df['close'],
+                    name='Price'
+                ))
+
+                # Add buy markers
+                buy_trades = [t for t in engine.trades if t['type'] == 'BUY']
+                if buy_trades:
+                    buy_times = [t['timestamp'] for t in buy_trades]
+                    buy_prices = [t['price'] for t in buy_trades]
+                    fig.add_trace(go.Scatter(
+                        x=buy_times,
+                        y=buy_prices,
+                        mode='markers',
+                        marker=dict(
+                            symbol='triangle-up',
+                            size=15,
+                            color='green'
+                        ),
+                        name='Buy'
+                    ))
+
+                # Add sell markers
+                sell_trades = [t for t in engine.trades if t['type'] == 'SELL']
+                if sell_trades:
+                    sell_times = [t['timestamp'] for t in sell_trades]
+                    sell_prices = [t['price'] for t in sell_trades]
+                    fig.add_trace(go.Scatter(
+                        x=sell_times,
+                        y=sell_prices,
+                        mode='markers',
+                        marker=dict(
+                            symbol='triangle-down',
+                            size=15,
+                            color='red'
+                        ),
+                        name='Sell'
+                    ))
+
+                # Update layout
+                fig.update_layout(
+                    title=f'{symbol} Price with Trade Markers',
+                    yaxis_title='Price (USD)',
+                    xaxis_title='Date',
+                    height=600,
+                    hovermode='x unified'
+                )
+
+                st.plotly_chart(fig, use_container_width=True)
+
         except Exception as e:
             st.error(f"Error running backtest: {str(e)}")
             import traceback
             st.code(traceback.format_exc())
 else:
     st.info("Configure parameters and click 'Run Backtest' to start")
-
-# Placeholder for results
-st.subheader("Charts")
-st.write("Price charts with trade markers will appear here")
