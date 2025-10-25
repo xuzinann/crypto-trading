@@ -1,5 +1,6 @@
 from datetime import datetime
 from typing import List, Dict, Optional
+import pandas as pd
 
 
 class BacktestEngine:
@@ -21,6 +22,46 @@ class BacktestEngine:
         self.trades = []
         self.equity_curve = []
         self.slippage = 0.001  # 0.1% slippage per trade
+
+    def run(self, historical_data: pd.DataFrame) -> Dict:
+        """
+        Run backtest simulation
+
+        Args:
+            historical_data: DataFrame with OHLCV data
+
+        Returns:
+            Dictionary with backtest results
+        """
+        for idx, row in historical_data.iterrows():
+            # Get strategy signal
+            signal = self.strategy.generate_signal(row, historical_data[:idx+1])
+
+            # Execute based on signal
+            if signal == 'BUY' and self.position_size == 0:
+                self.execute_buy(row['close'], row['timestamp'])
+            elif signal == 'SELL' and self.position_size > 0:
+                self.execute_sell(row['close'], row['timestamp'])
+
+            # Track equity
+            current_equity = self.get_current_equity(row['close'])
+            self.equity_curve.append({
+                'timestamp': row['timestamp'],
+                'equity': current_equity
+            })
+
+        return {
+            'trades': self.trades,
+            'equity_curve': self.equity_curve,
+            'final_capital': self.get_current_equity(historical_data.iloc[-1]['close'])
+        }
+
+    def get_current_equity(self, current_price: float) -> float:
+        """Calculate current total equity value"""
+        if self.position_size > 0:
+            return self.position_size * current_price
+        else:
+            return self.current_capital
 
     def execute_buy(self, price: float, timestamp: datetime):
         """
