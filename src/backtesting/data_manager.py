@@ -1,5 +1,7 @@
 from datetime import datetime, timedelta
 from typing import List, Tuple
+from sqlalchemy.orm import Session
+from src.database.models.historical_price import HistoricalPrice
 
 
 class DataManager:
@@ -8,6 +10,34 @@ class DataManager:
     def __init__(self):
         """Initialize data manager"""
         pass
+
+    def get_cached_data(
+        self,
+        db: Session,
+        symbol: str,
+        start: datetime,
+        end: datetime,
+        timeframe: str
+    ) -> List[HistoricalPrice]:
+        """
+        Query cached historical data from database
+
+        Args:
+            db: Database session
+            symbol: Trading pair symbol (e.g., 'BTC/USDT')
+            start: Start datetime
+            end: End datetime
+            timeframe: Time granularity
+
+        Returns:
+            List of HistoricalPrice records
+        """
+        return db.query(HistoricalPrice).filter(
+            HistoricalPrice.symbol == symbol,
+            HistoricalPrice.timestamp >= start,
+            HistoricalPrice.timestamp <= end,
+            HistoricalPrice.timeframe == timeframe
+        ).order_by(HistoricalPrice.timestamp).all()
 
     def detect_missing_ranges(
         self,
