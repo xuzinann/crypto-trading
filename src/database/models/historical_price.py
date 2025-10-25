@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Float, DateTime, Index
+from sqlalchemy import Column, Integer, String, Float, DateTime, Index, UniqueConstraint
 from src.database.models.base import Base, TimestampMixin
 from datetime import datetime
 
@@ -19,6 +19,7 @@ class HistoricalPrice(Base, TimestampMixin):
     __table_args__ = (
         Index('idx_symbol_timestamp', 'symbol', 'timestamp'),
         Index('idx_symbol_timeframe', 'symbol', 'timeframe'),
+        UniqueConstraint('symbol', 'timestamp', 'timeframe', name='uq_symbol_timestamp_timeframe'),
     )
 
     def __repr__(self):
